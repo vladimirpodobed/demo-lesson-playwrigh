@@ -34,7 +34,7 @@ test('signIn with invalid credentials should lead to error', async () => {
 
 // Test 3. Login with correct credentials
 // and verify order creation page
-test.skip('login with correct credentials and verify order creation page', async () => {
+test('login with correct credentials and verify order creation page', async () => {
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   await expect(orderCreationPage.usernameInput).toBeVisible()
@@ -44,7 +44,7 @@ test.skip('login with correct credentials and verify order creation page', async
 })
 
 // Test 4. Check errors on order creation
-test.skip('check errors on order creation', async () => {
+test('check errors on order creation', async () => {
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   // Fill form with invalid data
@@ -57,7 +57,7 @@ test.skip('check errors on order creation', async () => {
 })
 
 // Test 5. Logout from order page
-test.skip('logout from order page', async ({ page }) => {
+test('logout from order page', async ({ page }) => {
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   // Logout
@@ -71,7 +71,7 @@ test.skip('logout from order page', async ({ page }) => {
 })
 
 // Test 6. Order not found page
-test.skip('order not found page', async () => {
+test('order not found page', async () => {
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   // Open order search
@@ -87,7 +87,7 @@ test.skip('order not found page', async () => {
 })
 
 // Test 7. Order found page
-test.skip('order found page', async () => {
+test('order found page', async () => {
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   // Search for existing order
