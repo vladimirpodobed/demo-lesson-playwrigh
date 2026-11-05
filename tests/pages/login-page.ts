@@ -8,26 +8,26 @@ export class LoginPage {
   readonly signInButton: Locator
   readonly usernameField: Locator
   readonly passwordField: Locator
-  // add more locators here
+  readonly authError: Locator
 
   constructor(page: Page) {
     this.page = page
+
     this.signInButton = page.getByTestId('signIn-button')
     this.usernameField = page.getByTestId('username-input')
     this.passwordField = page.getByTestId('password-input')
-    // continue with the rest of the implementation below
+    this.authError = page.getByTestId('authorizationError-popup')
   }
 
-  async open() {
+  async open(): Promise<void> {
     await this.page.goto(this.url)
   }
 
-  async signIn(username: string, password: string) {
+  async signIn(username: string, password: string): Promise<OrderPage> {
     await this.usernameField.fill(username)
     await this.passwordField.fill(password)
     await this.signInButton.click()
+
     return new OrderPage(this.page)
   }
-
-  // continue with the rest of the implementation below
 }
