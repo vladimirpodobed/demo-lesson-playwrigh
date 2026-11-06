@@ -1,103 +1,137 @@
 import { test, expect } from '@playwright/test'
-import { faker } from '@faker-js/faker'
 import { LoginPage } from '../pages/login-page'
-import { OrderPage } from '../pages/order-page'
-import { USERNAME, PASSWORD } from '../../config/env-data'
+import { faker } from '@faker-js/faker'
+import { PASSWORD, USERNAME } from '../../config/env-data'
 
-// Login page
 let loginPage: LoginPage
 
-// Open login page before each test
+// Перед каждым тестом открываем страницу авторизации
 test.beforeEach(async ({ page }) => {
   loginPage = new LoginPage(page)
   await loginPage.open()
 })
 
-// Test 1. Sign in button disabled when password
-// is less than 8 characters
-test('signIn button disabled when password is less than 8 characters', async () => {
+// Test 1. Проверяем, что кнопка входа отключена,
+// если пароль содержит меньше 8 символов
+test('signIn button disabled when password is less than 8 characters', async ({}) => {
+  // Вводим случайное имя пользователя
   await loginPage.usernameField.fill(faker.lorem.word(2))
+
+  // Вводим короткий пароль
   await loginPage.passwordField.fill(faker.lorem.word(7))
 
+  // Проверяем, что кнопка входа отключена
   await expect(loginPage.signInButton).toBeDisabled()
 })
 
-// Test 2. Invalid credentials should lead to error
-test('signIn with invalid credentials should lead to error', async () => {
+// Test 2. Проверяем сообщение об ошибке
+// при вводе неправильных учётных данных
+test('signIn with invalid credentials should lead to error', async ({}) => {
+  // Вводим случайное имя пользователя
   await loginPage.usernameField.fill(faker.lorem.word(2))
+
+  // Вводим неправильный пароль
   await loginPage.passwordField.fill(faker.lorem.word(9))
 
+  // Нажимаем кнопку входа
   await loginPage.signInButton.click()
 
+  // Проверяем сообщение об ошибке
   await expect(loginPage.authError).toBeVisible()
 })
 
-// Test 3. Login with correct credentials
-// and verify order creation page
-test('login with correct credentials and verify order creation page', async () => {
-  const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
+// Test 3. Проверяем вход с правильными учётными данными
+// и открытие страницы создания заказа
+test('login with correct credentials and verify order creation page', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
 
+  // Проверяем элементы страницы создания заказа
+  await expect(orderCreationPage.statusButton).toBeVisible()
   await expect(orderCreationPage.usernameInput).toBeVisible()
   await expect(orderCreationPage.phoneInput).toBeVisible()
   await expect(orderCreationPage.commentInput).toBeVisible()
   await expect(orderCreationPage.createOrderButton).toBeVisible()
 })
 
-// Test 4. Check errors on order creation
-test('check errors on order creation', async () => {
-  const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
+// Test 4. Проверяем создание нового заказа
+test('login and create order', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
 
-  // Fill form with invalid data
-  await orderCreationPage.usernameInput.fill('a')
-  await orderCreationPage.phoneInput.fill('12345')
-  await orderCreationPage.commentInput.fill('leave nearby')
+  // Заполняем данные нового заказа
+  await orderCreationPage.usernameInput.fill('random-user')
+  await orderCreationPage.phoneInput.fill('56765434')
+  await orderCreationPage.commentInput.fill('Testing')
 
-  // Check that create order button is disabled
-  await expect(orderCreationPage.createOrderButton).toBeDisabled()
+  // Создаём заказ
+  await orderCreationPage.createOrderButton.click()
+
+  // Проверяем сообщение об успешном создании заказа
+  await expect(orderCreationPage.successMessage).toBeVisible()
 })
 
-// Test 5. Logout from order page
-test('logout from order page', async ({ page }) => {
-  const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
+// Test 5. Проверяем ошибки при создании заказа
+test('check error on order creation', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
 
-  // Logout
+  // Вводим некорректные данные
+  await orderCreationPage.usernameInput.fill('r')
+  await orderCreationPage.phoneInput.fill('55434')
+  await orderCreationPage.commentInput.fill('Testing')
+
+  // Проверяем, что кнопка создания заказа отключена
+  await expect(orderCreationPage.createOrderButton).toBeDisabled()
+
+  // Проверяем сообщения об ошибках
+  await expect(orderCreationPage.customerNameError).toBeVisible()
+  await expect(orderCreationPage.phoneError).toBeVisible()
+})
+
+// Test 6. Проверяем выход из учётной записи
+test('log out from order page', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
+
+  // Выходим из учётной записи
   await orderCreationPage.logoutButton.click()
 
-  // Check login button
+  // Проверяем возвращение на страницу авторизации
   await expect(loginPage.signInButton).toBeVisible()
-
-  // Check URL
-  await expect(page).toHaveURL(/signin/)
+  await expect(orderCreationPage.logoutButton).toBeHidden()
 })
 
-// Test 6. Order not found page
-test('order not found page', async () => {
-  const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
+// Test 7. Проверяем страницу, если заказ не найден
+test('order not found page', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
 
-  // Open order search
+  // Открываем окно поиска заказа
   await orderCreationPage.statusButton.click()
 
-  // Search for non-existing order
-  await orderCreationPage.searchOrderInput.fill('25000')
+  // Вводим номер несуществующего заказа
+  await orderCreationPage.searchOrderInput.fill('123986')
+
+  // Запускаем поиск
   await orderCreationPage.searchOrderButton.click()
 
-  // Checks
+  // Проверяем сообщение об отсутствии заказа
   await expect(orderCreationPage.orderNotFoundText).toBeVisible()
+
+  // Проверяем изображение отсутствующего заказа
   await expect(orderCreationPage.orderNotFoundImage).toBeVisible()
 })
 
-// Test 7. Order found page
-test('order found page', async () => {
-  const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
+// Test 8. Проверяем страницу найденного заказа
+test('order found page', async ({}) => {
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
 
-  // Search for existing order
+  // Открываем окно поиска заказа
   await orderCreationPage.statusButton.click()
 
-  // Fill order number
-  await orderCreationPage.searchOrderInput.fill('20616')
+  // Вводим номер существующего заказа
+  await orderCreationPage.searchOrderInput.fill('20619')
+
+  // Запускаем поиск
   await orderCreationPage.searchOrderButton.click()
 
-  // Checks
+  // Проверяем статус и информацию о заказе
   await expect(orderCreationPage.orderStatusOpen).toBeVisible()
   await expect(orderCreationPage.orderNameDetails).toBeVisible()
 })

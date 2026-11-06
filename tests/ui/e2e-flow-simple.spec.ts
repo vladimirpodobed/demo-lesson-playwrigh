@@ -43,13 +43,17 @@ test('signIn with invalid credentials should lead to error', async ({ page }) =>
 
 // Test 3. Проверяем вход с правильными учётными данными
 // и открытие страницы создания заказа
-test('login with correct credentials and verify order creation page', async ({ page }) => {
+test.skip('login with correct credentials and verify order creation page', async ({ page }) => {
   const loginPage = new LoginPage(page)
+
+  // Открываем страницу авторизации
+  await loginPage.open()
 
   // Выполняем вход
   const orderCreationPage: OrderPage = await loginPage.signIn(USERNAME, PASSWORD)
 
   // Проверяем элементы страницы создания заказа
+  await expect(orderCreationPage.statusButton).toBeVisible()
   await expect(orderCreationPage.usernameInput).toBeVisible()
   await expect(orderCreationPage.phoneInput).toBeVisible()
   await expect(orderCreationPage.commentInput).toBeVisible()

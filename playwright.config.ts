@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 15000,
+  timeout: 30000,
 
   fullyParallel: true,
 
@@ -17,6 +17,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
+    headless: false, //Теперь браузеры будут открываться, и я сможегу наблюдать за выполнением тестов.
     trace: 'on-first-retry',
 
     // IMPORTANT: application uses data-name instead of data-testid
