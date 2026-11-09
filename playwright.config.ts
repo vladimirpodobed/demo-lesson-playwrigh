@@ -17,7 +17,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    headless: false, //Теперь браузеры будут открываться, и я сможегу наблюдать за выполнением тестов.
+    headless: !!process.env.CI, //Теперь браузеры будут открываться, и я сможегу наблюдать за выполнением тестов.
     trace: 'on-first-retry',
 
     // IMPORTANT: application uses data-name instead of data-testid
