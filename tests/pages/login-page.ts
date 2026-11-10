@@ -28,6 +28,12 @@ export class LoginPage {
     await this.passwordField.fill(password)
     await this.signInButton.click()
 
+    // Ждём появления поля телефона на странице создания заказа
+    await this.page.getByTestId('phone-input').waitFor({
+      state: 'visible',
+      timeout: 15000,
+    })
+
     return new OrderPage(this.page)
   }
 }
