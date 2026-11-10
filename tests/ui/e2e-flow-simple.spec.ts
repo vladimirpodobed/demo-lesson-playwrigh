@@ -43,7 +43,7 @@ test('signIn with invalid credentials should lead to error', async ({ page }) =>
 
 // Test 3. Проверяем вход с правильными учётными данными
 // и открытие страницы создания заказа
-test.skip('login with correct credentials and verify order creation page', async ({ page }) => {
+test('login with correct credentials and verify order creation page', async ({ page }) => {
   const loginPage = new LoginPage(page)
 
   // Открываем страницу авторизации
