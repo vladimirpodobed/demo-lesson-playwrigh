@@ -62,11 +62,19 @@ test('login and create order', async ({}) => {
   await orderCreationPage.phoneInput.fill('56765434')
   await orderCreationPage.commentInput.fill('Testing')
 
+  // Проверяем введённые значения
+  await expect(orderCreationPage.usernameInput).toHaveValue('random-user')
+  await expect(orderCreationPage.phoneInput).toHaveValue('56765434')
+  await expect(orderCreationPage.commentInput).toHaveValue('Testing')
+
   // Создаём заказ
   await orderCreationPage.createOrderButton.click()
 
   // Проверяем сообщение об успешном создании заказа
-  await expect(orderCreationPage.successMessage).toBeVisible()
+  // Номер отслеживания может изменяться при каждом создании заказа
+  await expect(orderCreationPage.successMessage).toHaveText(
+    /×Order has been created!Tracking code: \d+ok/,
+  )
 })
 
 // Test 5. Проверяем ошибки при создании заказа
@@ -134,4 +142,7 @@ test('order found page', async ({}) => {
   // Проверяем статус и информацию о заказе
   await expect(orderCreationPage.orderStatusOpen).toBeVisible()
   await expect(orderCreationPage.orderNameDetails).toBeVisible()
+
+  // Проверяем, что информация о заказе содержит имя клиента
+  await expect(orderCreationPage.orderNameDetails).toContainText('felipe')
 })
