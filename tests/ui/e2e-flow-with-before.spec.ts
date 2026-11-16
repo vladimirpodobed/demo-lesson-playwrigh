@@ -2,6 +2,12 @@ import { test, expect } from '@playwright/test'
 import { LoginPage } from '../pages/login-page'
 import { faker } from '@faker-js/faker'
 import { PASSWORD, USERNAME } from '../../config/env-data'
+import {
+  existingOrderMock,
+  nonExistingOrderMock,
+  orderCreationMock,
+  orderNotFoundMock,
+} from '../mock/order-mocks'
 
 let loginPage: LoginPage
 
@@ -71,6 +77,7 @@ test('login and create order', async ({}) => {
   await orderCreationPage.createOrderButton.click()
 
   // Проверяем сообщение об успешном создании заказа
+
   // Номер отслеживания может изменяться при каждом создании заказа
   await expect(orderCreationPage.successMessage).toHaveText(
     /×Order has been created!Tracking code: \d+ok/,
@@ -145,4 +152,75 @@ test('order found page', async ({}) => {
 
   // Проверяем, что информация о заказе содержит имя клиента
   await expect(orderCreationPage.orderNameDetails).toContainText('felipe')
+})
+
+// Test 9. Проверяем найденный заказ с помощью мока
+test('order mock found page', async ({ page }) => {
+  await existingOrderMock(page)
+
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
+
+  // Открываем окно поиска заказа
+  await orderCreationPage.statusButton.click()
+
+  // Ищем заказ, который возвращает мок
+  await orderCreationPage.searchOrderInput.fill('23999')
+  await orderCreationPage.searchOrderButton.click()
+
+  // Проверяем данные найденного заказа
+  await expect(orderCreationPage.orderStatusOpen).toBeVisible()
+  await expect(orderCreationPage.orderNameDetails).toContainText('Mark')
+})
+
+// Test 10. Проверяем отсутствие заказа с помощью мока
+test('order mock not found page', async ({ page }) => {
+  await orderNotFoundMock(page)
+
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
+
+  // Открываем окно поиска заказа
+  await orderCreationPage.statusButton.click()
+
+  // Ищем несуществующий заказ
+  await orderCreationPage.searchOrderInput.fill('123986')
+  await orderCreationPage.searchOrderButton.click()
+
+  // Проверяем сообщение и изображение отсутствующего заказа
+  await expect(orderCreationPage.orderNotFoundText).toBeVisible()
+  await expect(orderCreationPage.orderNotFoundImage).toBeVisible()
+})
+
+// Test 11. Проверяем ошибку сервера с помощью мока
+test('order mock server side error', async ({ page }) => {
+  await nonExistingOrderMock(page)
+
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
+
+  // Открываем окно поиска заказа
+  await orderCreationPage.statusButton.click()
+
+  // Запускаем поиск
+  await orderCreationPage.searchOrderInput.fill('123986')
+  await orderCreationPage.searchOrderButton.click()
+
+  // Проверяем сообщение об ошибке сервера
+  await expect(page.getByText('Please retry your request later')).toBeVisible()
+})
+
+// Test 12. Проверяем создание заказа с помощью мока
+test('order creation mock', async ({ page }) => {
+  await orderCreationMock(page)
+
+  const orderCreationPage = await loginPage.signIn(USERNAME, PASSWORD)
+
+  // Заполняем данные нового заказа
+  await orderCreationPage.usernameInput.fill('Mark')
+  await orderCreationPage.phoneInput.fill('55667788')
+  await orderCreationPage.commentInput.fill('keep near door')
+
+  // Создаём заказ
+  await orderCreationPage.createOrderButton.click()
+
+  // Проверяем успешное создание заказа
+  await expect(orderCreationPage.successMessage).toContainText('Order has been created!')
 })

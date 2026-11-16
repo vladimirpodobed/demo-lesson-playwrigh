@@ -50,3 +50,13 @@ export async function orderCreationMock(page: Page): Promise<void> {
     }
   })
 }
+
+// Mock for order not found
+export async function orderNotFoundMock(page: Page): Promise<void> {
+  await page.route('**/orders/*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      body: '',
+    })
+  })
+}
